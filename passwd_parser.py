@@ -21,6 +21,15 @@ class FileFormatError(Exception):
 
 
 def validate_passwd_format(user_data, line_num, users_encountered):
+    """
+    Check whether a row of the passwd file has a valid format by
+        - counting the number of fields
+        - ensuring that there are no duplicate users
+
+    :param user_data:   a list containing the fields of an entry in the passwd file
+    :param line_num:    the line number of the entry being checked
+    :param users_encountered:   a set of users already parsed in the passwd file
+    """
     if len(user_data) != PasswdFieldEnum.TOTAL_FIELDS:
         raise FileFormatError(
             "Couldn't parse line {} of '{}': expected {} values but found {}".format(line_num,
@@ -36,6 +45,17 @@ def validate_passwd_format(user_data, line_num, users_encountered):
 
 
 def validate_group_format(group_data, line_num, groups_encountered):
+    """
+    Check whether a row of the group file has a valid format by
+        - counting the number of fields
+        - ensuring that there are no duplicate groups
+
+    :param group_data:   a list containing the fields of an entry in the group file
+    :param line_num:    the line number of the entry being checked
+    :param groups_encountered:   a set of groups already parsed in the group file
+    :raise FileFormatError
+    """
+
     if len(group_data) != GroupFieldEnum.TOTAL_FIELDS:
         raise FileFormatError(
             "Couldn't parse line {} of '{}': expected {} values but found {}".format(line_num,
@@ -57,6 +77,7 @@ def parse_passwd_file(passwd_file, user2groups):
     :param passwd_file: path (string) to the passwd file
     :param user2groups: a dictionary that maps usernames to groups
     :return: a dictionary containing user and group information
+    :raise FileFormatError
     """
 
     parsed_data = {}
@@ -125,9 +146,11 @@ parser.add_argument("-p", "--passwd", default='/etc/passwd',
                     help='Path to the passwd file. Defaults to /etc/passwd if not provided.')
 parser.add_argument("-g", "--group", default='/etc/group',
                     help='Path to the group file. Defaults to /etc/group if not provided.')
-parser.add_argument("-s", "--sorted", action='store_true', help='Sort keys of the JSON string alphabetically')
+parser.add_argument("-s", "--sorted", action='store_true', help='Sort keys of the JSON string alphabetically.')
 parser.add_argument("-c", "--compact", action='store_true',
                     help='Print the JSON string in a compact form. The default setting is to pretty-print the JSON.')
+parser.add_argument("-o", "--outfile",
+                    help='Specifies a file path to which the JSON string should be written to. If omitted or an error occurs, the output is printed to STDOUT.')
 args = parser.parse_args()
 
 passwd_path = args.passwd
@@ -143,4 +166,12 @@ user2groups = parse_group_file(group_file)
 parsed_data = parse_passwd_file(passwd_file, user2groups)
 parsed_json = json.dumps(parsed_data, indent=None if args.compact else 4, sort_keys=args.sorted)
 
-print(parsed_json)
+if args.outfile:
+    try:
+        with open(args.outfile, "w") as outfile:
+            outfile.write(parsed_json)
+    except Exception as e:
+        print("Couldn't write to output file: {}".format(str(e)))
+        print(parsed_json)
+else:
+    print(parsed_json)
