@@ -141,7 +141,7 @@ def parse_group_file(group_file):
 
 
 parser = argparse.ArgumentParser(
-    description='Parse the passwd and group files and combine the data into a single JSON output.')
+    description='Parse the UNIX passwd and group files and combine the data into a single JSON output.')
 parser.add_argument("-p", "--passwd", default='/etc/passwd',
                     help='Path to the passwd file. Defaults to /etc/passwd if not provided.')
 parser.add_argument("-g", "--group", default='/etc/group',
@@ -150,7 +150,7 @@ parser.add_argument("-s", "--sorted", action='store_true', help='Sort keys of th
 parser.add_argument("-c", "--compact", action='store_true',
                     help='Print the JSON string in a compact form. The default setting is to pretty-print the JSON.')
 parser.add_argument("-o", "--outfile",
-                    help='Specifies a file path to which the JSON string should be written to. If omitted or an error occurs, the output is printed to STDOUT.')
+                    help='Specifies a file path to which the JSON string should be written. If omitted or an error occurs, the output is printed to STDOUT.')
 args = parser.parse_args()
 
 passwd_path = args.passwd
